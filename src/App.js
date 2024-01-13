@@ -17,16 +17,19 @@ import {
   ColorModeProvider,
   useColorMode,
   CSSReset,
+  IconButton,
 } from '@chakra-ui/react';
 import './App.css';
+import ToggleButton from './ToggleButton';
+import { FaMoon, FaSun } from 'react-icons/fa'; // Icons for dark and light modes
 
 function App() {
   const [rows, setRows] = useState(3);
   const [cols, setCols] = useState(3);
   const [tableData, setTableData] = useState(createEmptyTableData(rows, cols));
   const [markdownOutput, setMarkdownOutput] = useState('');
+  const [isLoading, setIsLoading] = useState(false); // New state for loading
   
-
   function createEmptyTableData(rows, cols) {
     return Array.from({ length: rows }, () => Array.from({ length: cols }, () => ''));
   }
@@ -42,8 +45,14 @@ function App() {
   }
 
   function generateMarkdown() {
-    const markdown = tableData.map(row => `| ${row.join(' | ')} |`).join('\n');
-    setMarkdownOutput(markdown);
+    setIsLoading(true); // Set loading to true before starting the operation
+
+    setTimeout(() => {
+      const markdown = tableData.map(row => `| ${row.join(' | ')} |`).join('\n');
+      setMarkdownOutput(markdown);
+      setIsLoading(false); // Set loading to false when the operation is complete
+      showToast('Markdown Generated', 'success');
+    }, 1000); // Simulating an asynchronous operation, replace with your actual logic
   }
 
   const toast = useToast();
@@ -51,31 +60,34 @@ function App() {
   function copyToClipboard() {
     navigator.clipboard.writeText(markdownOutput)
       .then(() => {
-        toast({
-          title: 'Copied to Clipboard',
-          description: 'The Markdown content has been copied to the clipboard.',
-          status: 'success',
-          duration: 3000,
-          isClosable: true,
-        });
+        showToast('Copied to Clipboard', 'success');
       })
       .catch((error) => {
         console.error('Unable to copy to clipboard', error);
-        toast({
-          title: 'Error',
-          description: 'Unable to copy to clipboard. Please try again.',
-          status: 'error',
-          duration: 3000,
-          isClosable: true,
-        });
+        showToast('Error', 'error');
       });
+  }
+
+  function showToast(title, status) {
+    toast({
+      title: title,
+      status: status,
+      duration: 3000,
+      isClosable: true,
+    });
+  }
+
+  function resetData() {
+    setRows(3);
+    setCols(3);
+    setTableData(createEmptyTableData(3, 3));
+    setMarkdownOutput('');
   }
 
 
   return (
     <ChakraProvider>
-      <ColorModeScript initialColorMode="dark" />
-      <ColorModeProvider>
+      <ToggleButton />
         <Box textAlign="center" margin="20px">
         <Heading as="h1" size="xl" mb="4">Markdown Table Generator</Heading>
           <label>
@@ -115,11 +127,14 @@ function App() {
             </Table>
           </Box>
 
-          <Button onClick={generateMarkdown}>Generate Markdown</Button>
-          <Button onClick={copyToClipboard}>Copy to Clipboard</Button>
+          <Button onClick={generateMarkdown} isLoading={isLoading}>
+        Generate Markdown
+      </Button>
+      <Button onClick={copyToClipboard}>Copy to Clipboard</Button>
+      <Button onClick={resetData}>Reset Data</Button>
           <Textarea value={markdownOutput} size="lg" mt="4" mx="auto"/>
+        
         </Box>
-      </ColorModeProvider>
     </ChakraProvider>
   );
 }
