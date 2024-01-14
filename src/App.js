@@ -20,7 +20,7 @@ import {
   IconButton,
 } from '@chakra-ui/react';
 import './App.css';
-import ToggleButton from './ToggleButton';
+import ToggleButton from './components/ToggleButton';
 import { FaMoon, FaSun } from 'react-icons/fa'; // Icons for dark and light modes
 
 function App() {
